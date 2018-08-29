@@ -52,9 +52,14 @@ $computerAdmin = $User
 
 
 #$userCredential = Get-Credential -Message "Password : " -Username $Username
-
+try {
 # Create the new computer object
-New-ADComputer -Name $computerName -Path $OU
+	New-ADComputer -Name $computerName -Path $OU
+} catch {
+	Write-Output "Could not add computer [$computerName] to the OU [$OU]."
+	# [Environment]::Exit(1)
+}
+
 if ( $User.length -gt 0 ) {
     # Create the ACL for the computer and add a user with full control
     # Get the current ACL
@@ -73,5 +78,9 @@ if ( $User.length -gt 0 ) {
     $computerACL.AddAccessRule($ace) 
 
     # Apply the new ACL to the computer object
-    Set-Acl -AclObject $computerACL $computerName
+	try {
+		Set-Acl -AclObject $computerACL $computerName
+	} catch {
+		Write-Output "Could not grant privileges to user [$computerAdmin]."
+	}
 }
